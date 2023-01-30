@@ -1,6 +1,7 @@
 ﻿using API.Dto;
 using AutoMapper;
 using Core.Entities;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace API.Profiles
@@ -28,6 +29,12 @@ namespace API.Profiles
                  .ForMember(dest => dest.AutoresLibro, opt => opt.Ignore())
                     .AfterMap((src , dest) => dest.AutoresLibro = MapAutoresLibroPut(src, dest))
                  .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<LibroPatchDto, Libro>()
+                .ForMember(dest => dest.AutoresLibro, opt => opt.MapFrom(MapAutoresLibroPatch));
+            
+            CreateMap<Libro, LibroPatchDto>()
+                .ForMember(dest => dest.AutoresId, opt => opt.MapFrom((src, dest ) => src.AutoresLibro.Select(al => al.Autor).Select(a => a!.Id)));
 
         }
 
@@ -79,5 +86,26 @@ namespace API.Profiles
 
             return result;
         }
+
+        private static List<AutorLibro> MapAutoresLibroPatch(LibroPatchDto libroPatchDto, Libro libro)
+        {
+            List<AutorLibro> result = libro.AutoresLibro!;
+
+            if (libroPatchDto.AutoresId == null || libroPatchDto.AutoresId.Count == 0) return result;
+
+            result = new();
+
+            for (int i = 0; i < libroPatchDto.AutoresId!.Count; i++)
+            {
+                result.Add(new()
+                {
+                    AutorId = libroPatchDto.AutoresId[i],
+                    Orden = (i + 1)
+                });
+            }
+
+            return result;
+        }
     }
+
 }

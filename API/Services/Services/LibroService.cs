@@ -3,6 +3,9 @@ using API.Services.Interfaces;
 using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace API.Services.Services
 {
@@ -140,6 +143,63 @@ namespace API.Services.Services
             };
         }
 
+        public async Task<Dictionary<int, object>> ValidatePatchLibroDto(int id, JsonPatchDocument<LibroPatchDto> patchDocument)
+        {
+            //tengo que hacerlo asi porque el modelState y el TryValidate son metodos de la clase
+            //abstracta ControllerBase por lo cual no puedo tenerlo aqui, a menos que derive de controller base pero no se que tan ideal seria eso
+            //por lo cual tendre que tener algo de logica en mis controladores :(
+            //con este hago las primeras validaciones y luego le hago path en el controlador y en el otro metodo si ya el savechanges
+            if (id <= 0 ) return new() { { 400, "Los Id proporcionados deben ser numeros positivos" } };
+
+            if (patchDocument is null) return new() { { 400, "Error en formato PATCH" } };
+
+            Libro? libro = await _libroRepository.GetLibroById(id);
+
+            if (libro is null) return new() { { 404, $"Libro No Encontrado Id ---> ({id})" } };
+
+            //retorno un objeto con dos propiedades el Dto mapeado del libro y el libro para luego mandarlo a otro metodo a que se actualice
+            //ahora en el controlador lo valido el Dto contra el model State y luego lo updateo es una movida nome gusta
+            return new() { { 200, new { Dto = _mapper.Map<LibroPatchDto>(libro) , Libro = libro} } };
+        }  
+
+        public async Task<Dictionary<int,object>> PatchLibro(Object DtoYLibro)
+        {
+            LibroPatchDto libroPatchDto = (LibroPatchDto)DtoYLibro.GetType().GetProperty("Dto")!.GetValue(DtoYLibro, null)!;
+            Libro libro = (Libro)DtoYLibro.GetType().GetProperty("Libro")!.GetValue(DtoYLibro, null)!;
+
+            #region Validaiton
+
+            if (libroPatchDto.AutoresId is not null && libroPatchDto.AutoresId.Count > 0)
+            {
+                if (libroPatchDto.AutoresId.Any(a => a <= 0)) return new() { { 400, "El Id de los autores debe ser un numero mayor a 0" } };
+                if (CheckAutoresIguales(libroPatchDto.AutoresId)) return new() { { 400, "Si el libro Posee mas de un autor, Los Id de los mismos debe ser Distintos entre ellos" } };
+                int result = await CheckAutoresExisten(libroPatchDto.AutoresId);
+                if (result != -1) return new() { { 400, $"El Id del Autor Especificado no Existe ({result})" } };
+
+            }
+
+            if (libroPatchDto.Isbn != 0 && libroPatchDto.Isbn != libro.Isbn)
+            {
+                if (await CheckLibroByIsbn(libroPatchDto.Isbn)) return new() { { 400, $"El Isbn Ingresado ya se encuentra registrado ---> ({libroPatchDto.Isbn})" } };
+
+            }
+
+            #endregion
+
+            _mapper.Map(libroPatchDto, libro);
+
+            return await _libroRepository.SaveChangesAsync() switch
+            {
+                >= 0 => new() { { 200, "Actualizado" } },  //siempre va a entrar en esta linea a menos que se rompa la bd algo asi pero aja era la forma mas facil de solucionar
+                //si los cambios ingresados son identicos devuelve 0 por lo cual me devolviera el de abajo un error si no es asi es que no ha modificado nada
+                //antes estaba > 0 pero lo cambie a >= 0 
+
+                _ => new() { { 500, "Error Inesperado al intentar actualizar con patch" } }
+            };
+
+
+        }
+
         public async Task<Dictionary<int, string>> Delete(int id)
         {
             Libro? libro = await _libroRepository.GetLibroById(id);
@@ -154,5 +214,6 @@ namespace API.Services.Services
 
             };
         }
+
     }
 }

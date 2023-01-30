@@ -1,11 +1,7 @@
 ﻿using API.Dto;
 using API.Services.Interfaces;
-using API.Services.Services;
-using Core.Entities;
-using Core.Interfaces;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client.Kerberos;
 
 namespace API.Controllers
 {
@@ -87,6 +83,42 @@ namespace API.Controllers
                 _ => StatusCode(StatusCodes.Status500InternalServerError, result[500])
             };
                 
+
+        }
+
+        #endregion
+
+        #region PATCH
+
+        //TODO ACOMODAR EL 500 QUE DEVUELVE PORQUE SI MANDAMOS UN PARAMETRO EXACTAMENTE IGUAL NO HACE EL SAVECHANGES Y DEVUELVE 0 Y YO ESTOY DEVOLVIENDO ERROR 500 POR ESO, NO ESTA BIEN
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<LibroPatchDto> patchDocument)
+        {
+           
+            Dictionary<int, object> result = await  _libroService.ValidatePatchLibroDto(id, patchDocument);
+
+            if (result.Keys.First() == 400) return BadRequest(result[400]);
+            if (result.Keys.First() == 404) return NotFound(result[404]);
+
+            LibroPatchDto libroPatchDto = (LibroPatchDto)result[200].GetType().GetProperty("Dto")!.GetValue(result[200], null)!;
+            
+            patchDocument.ApplyTo(libroPatchDto, ModelState);
+
+            if (!TryValidateModel(libroPatchDto)) return BadRequest(ModelState);
+
+            result = await _libroService.PatchLibro(result[200]);
+
+            return result.Keys.First() switch
+            {
+                200 => NoContent(),
+
+                _ => StatusCode(StatusCodes.Status500InternalServerError, result[500])
+            };
+       
+
+
+
+
 
         }
 

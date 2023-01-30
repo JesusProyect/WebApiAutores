@@ -15,11 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers( options =>
+builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(FiltroDeExcepcion));   // esto lo dejamos de momento
 }).AddJsonOptions(x =>
-x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+.AddNewtonsoftJson();
+//si añado newtonsoft se me jode el propertyorder wtf 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer( builder.Configuration.GetConnectionString("defaultConnection") ));

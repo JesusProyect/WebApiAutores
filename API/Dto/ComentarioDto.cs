@@ -1,15 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace API.Dto
 {
     public class ComentarioBaseDto
     {
+        [JsonProperty(Order = 2)]
         [Required]
         public string? Contenido { get; set; }
     }
 
     public class ComentarioGetDto : ComentarioBaseDto
     {
+        [JsonProperty(Order = 1)]
         public int Id { get; set; } 
     }
 

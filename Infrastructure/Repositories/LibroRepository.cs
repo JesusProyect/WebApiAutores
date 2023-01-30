@@ -40,6 +40,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.Libros
                  .Include(l => l.AutoresLibro)
+                    .ThenInclude(a => a.Autor)
                  .Include(l => l.Comentarios)
                  .AsSplitQuery()
                 .FirstOrDefaultAsync(l => l.Id == id);
@@ -62,6 +63,10 @@ namespace Infrastructure.Repositories
         {
             _context.Libros.Update(libro);// si modifico la referencia directamente lo detecta y no hay que hacer update por lo cual ESTA LINEA NO HACE FALTA LA DEJO POR NO MODIFICAR 
             return await (_context.SaveChangesAsync());
+        }
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
         }
         public async Task<int> Delete(Libro libro)
         {

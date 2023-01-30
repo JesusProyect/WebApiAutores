@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -7,12 +8,12 @@ namespace API.Dto
 
     public class LibroBaseDto
     {
-        [JsonPropertyOrder(2)]
+        [JsonProperty(Order = 2)]
         [Required]
         [StringLength(maximumLength: 120, ErrorMessage = "El campo {0} no debe tener mas de {1} caracteres")] //EJM
         public string? Title { get; set; }
 
-        [JsonPropertyOrder(3)]
+        [JsonProperty(Order = 3)]
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "El Campo {0} Es Requerido")]
         public int Isbn { get; set; }
@@ -20,22 +21,22 @@ namespace API.Dto
 
     public class LibroGetDto : LibroBaseDto
     {
-        [JsonPropertyOrder(1)]
+        [JsonProperty(Order = 1)]
         public int Id { get; set; }
     }
 
     public class LibroGetByIsbnDto : LibroBaseDto
     {
-        [JsonPropertyOrder(1)]
+        [JsonProperty(Order = 1)]
         public int Id { get; set; }
 
-        [JsonPropertyOrder(10)]
+        [JsonProperty(Order = 10)]
         public DateTime?  FechaPublicacion { get; set; }
 
-        [JsonPropertyOrder(11)]
+        [JsonProperty(Order = 11)]
         public List<AutorGetDto> Autores { get; set; } = new();
 
-        [JsonPropertyOrder(12)]
+        [JsonProperty(Order = 12)]
         public List<ComentarioGetDto>? UltimosComentarios { get; set; }
 
     } 
@@ -43,10 +44,10 @@ namespace API.Dto
     public class LibroPostDto : LibroBaseDto 
     {
 
-        [JsonPropertyOrder(10)]
+        [JsonProperty(Order = 10)]
         public DateTime? FechaPublicacion { get; set; }
 
-        [JsonPropertyOrder(11)]
+        [JsonProperty(Order = 11)]
         [Required]
         public List<int>?  AutoresId { get; set; }
 
@@ -65,7 +66,19 @@ namespace API.Dto
 
         public int Isbn { get; set; }
 
-        public DateTime? FechaPublicacion { get; set; } //TODO si no lo paso en el update se queda la que tenia antes configurar Automapper
+        public DateTime? FechaPublicacion { get; set; } 
+
+        public List<int>? AutoresId { get; set; }
+    }
+
+    public class LibroPatchDto
+    {
+        [StringLength(maximumLength: 120, ErrorMessage = "El campo {0} no debe tener mas de {1} caracteres")] //EJM
+        public string? Title { get; set; }
+
+        public int Isbn { get; set; }
+
+        public DateTime? FechaPublicacion { get; set; }
 
         public List<int>? AutoresId { get; set; }
     }

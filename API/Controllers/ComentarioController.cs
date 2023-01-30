@@ -10,7 +10,7 @@ namespace API.Controllers
     {
         private readonly IComentarioService _comentarioService;
 
-        public ComentarioController( IComentarioService comentarioService, int libroId )
+        public ComentarioController( IComentarioService comentarioService )
         {
             _comentarioService = comentarioService;
         }
@@ -22,7 +22,6 @@ namespace API.Controllers
         [HttpGet("{comentarioId:int}", Name = "GetComentarioById")]
         public async Task<ActionResult<ComentarioGetDto>> GetComentarioById(int libroId, int comentarioId)
         {
-            //TODO VER QUE EL COMENTARIO QUE SE QUIERE MODIFICAR ES DEL LIBRO QUE SE METE
             Dictionary<int, object> result = await _comentarioService.GetComentarioById(libroId, comentarioId);
 
             return result.Keys.First() switch

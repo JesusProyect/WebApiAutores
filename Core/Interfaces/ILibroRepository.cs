@@ -17,6 +17,7 @@ namespace Core.Interfaces
         public Task<List<Libro>> GetLibrosByName(string name);
         public Task<int> NewLibro(Libro libro);
         public Task<int> UpdateLibro(Libro libro);
+        public Task<int> SaveChangesAsync(); //esto es para el patch ya que como el objeto esta cargado en memoria no es necesario usar update
         public Task<int> Delete(Libro libro); 
     }
 }
