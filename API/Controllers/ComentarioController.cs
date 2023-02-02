@@ -1,5 +1,6 @@
 ﻿using API.Dto;
 using API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -54,10 +55,13 @@ namespace API.Controllers
         #region POST
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> Post( int libroId, ComentarioPostDto comentarioPostDto)
         {
+            string userEmail = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault()!.Value;
+            //string email = HttpContext.User.Claims.Where(claim => claim.Type == ClaimTypes.Email).FirstOrDefault()!.Value; asi lo cojo si lo tengo con el ClaymTypes Comentado de TokenService
 
-            Dictionary<int,object> result = await _comentarioService.NewComentario(comentarioPostDto, libroId);
+            Dictionary<int,object> result = await _comentarioService.NewComentario(comentarioPostDto, libroId, userEmail);
 
             return result.Keys.First() switch
             {

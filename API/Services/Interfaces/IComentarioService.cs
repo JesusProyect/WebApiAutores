@@ -11,7 +11,7 @@ namespace API.Services.Interfaces
 
         public Task<Dictionary<int , List<Object>>> GetComentarios(int libroId);
 
-        public Task<Dictionary<int, object>> NewComentario(ComentarioPostDto comentarioPostDto, int libroId);
+        public Task<Dictionary<int, object>> NewComentario(ComentarioPostDto comentarioPostDto, int libroId, string userEmail);
 
         public Task<Dictionary<int, string>> UpdateComentario(int libroId, int comentarioId, ComentarioPutDto comentarioPutDto);
 

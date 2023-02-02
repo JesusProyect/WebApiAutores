@@ -1,42 +1,53 @@
-using Infrastructure.Repositories;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
-using Core.Interfaces;
-using API.Services.Interfaces;
-using API.Services.Services;
 using API.Extensions;
 using Infrastructure;
-using API.Middlewares;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using API.Filters;
+using Infrastructure.Identity;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers(options =>
-{
-    options.Filters.Add(typeof(FiltroDeExcepcion));   // esto lo dejamos de momento
-}).AddJsonOptions(x =>
-x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+    options.Filters.Add(typeof(FiltroDeExcepcion)))   // esto lo dejamos de momento
+.AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
 .AddNewtonsoftJson();
-//si añado newtonsoft se me jode el propertyorder wtf 
+//si añado newtonsoft se me jode el propertyorder wtf  las propiedades se llaman dinstinto antes era jsonpropertyorder = 1 ahora jsonProperty(order=1)
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer( builder.Configuration.GetConnectionString("defaultConnection") ));
+
+builder.Services.AddDbContext<AppIdentityContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection")));
+
+
+builder.Services.AddIdentityServices( builder.Configuration);
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("https://apirequest.io")
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+        //.WithExposedHeaders();  esto es para exponer cabeceras desde el api no entendi bien pero dice que es un error comun olvidar esto asi que lo dejo por si acaso
+    });
+});
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure();
 
 //builder.Services.AddTransient<MiFiltroDeAccion>();
-
 //builder.Services.AddResponseCaching();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
+builder.Services.AddDataProtection();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.Services.AddSwaggerDocumentation();
 var app = builder.Build();
 
 //**************************************************************
@@ -61,7 +72,11 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseCors();
+
 //app.UseResponseCaching();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

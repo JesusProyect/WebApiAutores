@@ -3,6 +3,7 @@ using API.Services.Interfaces;
 using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace API.Services.Services
 {
@@ -10,12 +11,14 @@ namespace API.Services.Services
     {
         private readonly IComentarioRepository _comentarioRepository;
         private readonly ILibroService _libroService;
+        private readonly IUsuarioService _usuarioService;
         private readonly IMapper _mapper;
 
-        public ComentarioService( IComentarioRepository comentarioRepository, ILibroService libroService, IMapper mapper )
+        public ComentarioService( IComentarioRepository comentarioRepository, ILibroService libroService, IUsuarioService usuarioService, IMapper mapper )
         {
             _comentarioRepository = comentarioRepository;
             _libroService = libroService;
+            _usuarioService = usuarioService;
             _mapper = mapper;
         }
 
@@ -45,12 +48,19 @@ namespace API.Services.Services
 
         }
         
-        public async Task<Dictionary<int, object>> NewComentario( ComentarioPostDto comentarioPostDto, int libroId)
+        public async Task<Dictionary<int, object>> NewComentario( ComentarioPostDto comentarioPostDto, int libroId, string userEmail)
         {
+            if (userEmail is null) return new() { { 400, "El Email de Usuario no puede ser nulo" } };
+
+            IdentityUser user = await _usuarioService.GetUserByEmail(userEmail);
+
+            if (user is null) return new() { { 400, $"El Email de Usuario no existe ---> ({userEmail})" } };
+
             if ( !await _libroService.CheckLibroById(libroId)) return new() { { 400, $"El Id de libro proporcionado no se encuentra en la base de datos -->({libroId})"} };
 
             Comentario comentario = _mapper.Map<Comentario>(comentarioPostDto);
             comentario.LibroId = libroId;
+            comentario.UsuarioId = user.Id;
 
             return await _comentarioRepository.NewComentario(comentario) switch
             {

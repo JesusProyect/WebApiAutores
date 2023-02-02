@@ -1,9 +1,8 @@
 ﻿using API.Dto;
 using API.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Net;
 
 namespace API.Controllers
 {
@@ -21,6 +20,7 @@ namespace API.Controllers
         }
 
         #region GET
+        [Authorize(Policy = "esAdmin")]
         [HttpGet]
         //[ServiceFilter(typeof(MiFiltroDeAccion))]
         public  async Task<ActionResult<List<AutorGetDto>>> GetAutors()
