@@ -1,6 +1,7 @@
 ﻿using API.Dto;
 using API.Services.Interfaces;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
@@ -14,6 +15,7 @@ namespace API.Services.Services
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
         private readonly HashService _hashService;
+        private readonly IAuthorizationService _authorizationService;
         private readonly IDataProtector _dataProtector;
 
         public UsuarioService(
@@ -22,13 +24,15 @@ namespace API.Services.Services
             IMapper mapper,
             ITokenService tokenService,
             IDataProtectionProvider dataProtectionProvider,
-            HashService hashService)
+            HashService hashService,
+            IAuthorizationService authorizationService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _mapper = mapper;
             _tokenService = tokenService;
             _hashService = hashService;
+            _authorizationService = authorizationService;
             _dataProtector = dataProtectionProvider.CreateProtector("valor_unico_y_secreto");
 
         }
@@ -84,6 +88,9 @@ namespace API.Services.Services
 
              }};
         }
+
+        public async Task<AuthorizationResult> EsAdmin(ClaimsPrincipal user) => await _authorizationService.AuthorizeAsync(user, "EsAdmin");
+        
 
         public Dictionary<int, object> GenerarHash(string textoPlano)
         {

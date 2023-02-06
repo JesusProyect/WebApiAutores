@@ -40,7 +40,7 @@ namespace API.Services.Services
 
         public async Task<int> CheckAutoresExisten( List<int> autoresId)
         {
-            List<int> autores =  _autorService.GetAutors().Result
+            List<int> autores =  _autorService.GetAutorsAsync().Result
                 .Where(a => autoresId.Contains(a.Id))
                 .Select(aut => aut.Id)
                 .ToList();

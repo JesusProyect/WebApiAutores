@@ -3,9 +3,9 @@ using API.Services.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+namespace API.Controllers.V1
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class LibroController : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace API.Controllers
         [HttpGet("{isbn:int}", Name = "GetLibroByIsbn")]
         public async Task<ActionResult<LibroGetByIsbnDto>> GetLibroByIsbn(int isbn)
         {
-            Dictionary<int,object> result = await _libroService.GetLibroByIsbn(isbn);
+            Dictionary<int, object> result = await _libroService.GetLibroByIsbn(isbn);
 
             return result.Keys.First() switch
             {
@@ -31,30 +31,30 @@ namespace API.Controllers
                 _ => StatusCode(StatusCodes.Status500InternalServerError)
             };
 
-           
+
         }
 
-        [HttpGet]
+        [HttpGet(Name = "ObtenerLibros")]
         public async Task<ActionResult<List<LibroGetDto>>> GetLibros()
         {
             return await _libroService.GetLibros();
         }
 
-        [HttpGet("{name}")]
+        [HttpGet("{name}", Name = "GetLibrosByName")]
         public async Task<ActionResult<List<LibroGetDto>>> GetLibrosByName(string name)
         {
-             return Ok(await _libroService.GetLibrosByName(name));
+            return Ok(await _libroService.GetLibrosByName(name));
 
         }
 
         #endregion
 
         #region POST
-        [HttpPost]
+        [HttpPost(Name = "CrearLibro")]
         public async Task<ActionResult> Post(LibroPostDto libroPostDto)
         {
 
-            Dictionary<int,object> result = await _libroService.NewLibro(libroPostDto);
+            Dictionary<int, object> result = await _libroService.NewLibro(libroPostDto);
 
             return result.Keys.First() switch
             {
@@ -63,18 +63,18 @@ namespace API.Controllers
 
                 _ => StatusCode(StatusCodes.Status500InternalServerError, result[500])
 
-            }; 
-                    
+            };
+
         }
 
         #endregion
 
         #region PUT
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "ActualizarLibro")]
         public async Task<ActionResult> Put(LibroPutDto libroPutDto, int id)
         {
-        
-            Dictionary<int,string> result = await _libroService.UpdateLibro(libroPutDto, id);
+
+            Dictionary<int, string> result = await _libroService.UpdateLibro(libroPutDto, id);
             return result.Keys.First() switch
             {
                 200 => Ok(result[200]),
@@ -82,7 +82,7 @@ namespace API.Controllers
 
                 _ => StatusCode(StatusCodes.Status500InternalServerError, result[500])
             };
-                
+
 
         }
 
@@ -91,17 +91,17 @@ namespace API.Controllers
         #region PATCH
 
         //TODO ACOMODAR EL 500 QUE DEVUELVE PORQUE SI MANDAMOS UN PARAMETRO EXACTAMENTE IGUAL NO HACE EL SAVECHANGES Y DEVUELVE 0 Y YO ESTOY DEVOLVIENDO ERROR 500 POR ESO, NO ESTA BIEN
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id:int}", Name = "ActualizarLibroPatch")]
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<LibroPatchDto> patchDocument)
         {
-           
-            Dictionary<int, object> result = await  _libroService.ValidatePatchLibroDto(id, patchDocument);
+
+            Dictionary<int, object> result = await _libroService.ValidatePatchLibroDto(id, patchDocument);
 
             if (result.Keys.First() == 400) return BadRequest(result[400]);
             if (result.Keys.First() == 404) return NotFound(result[404]);
 
             LibroPatchDto libroPatchDto = (LibroPatchDto)result[200].GetType().GetProperty("Dto")!.GetValue(result[200], null)!;
-            
+
             patchDocument.ApplyTo(libroPatchDto, ModelState);
 
             if (!TryValidateModel(libroPatchDto)) return BadRequest(ModelState);
@@ -114,7 +114,7 @@ namespace API.Controllers
 
                 _ => StatusCode(StatusCodes.Status500InternalServerError, result[500])
             };
-       
+
 
 
 
@@ -125,7 +125,7 @@ namespace API.Controllers
         #endregion
 
         #region DELETE
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name = "BorrarLibro")]
         public async Task<ActionResult> Delete(int id)
         {
             Dictionary<int, string> result = await _libroService.Delete(id);
@@ -136,12 +136,12 @@ namespace API.Controllers
                 400 => BadRequest(result[400]),
 
                 _ => StatusCode(StatusCodes.Status500InternalServerError, result[500])
-            }; 
-               
+            };
+
         }
 
         #endregion
 
-       
+
     }
 }

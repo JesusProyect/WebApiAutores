@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories
                 .Where(a => a.Name!.Contains(name)).ToListAsync();
         }
 
-        public  async Task<List<Autor>> GetAutors()
+        public  async Task<List<Autor>> GetAutorsAsync()
         {
             return await _context.Autores
                 .ToListAsync();
@@ -72,6 +72,12 @@ namespace Infrastructure.Repositories
         {
             _context.Autores.Remove(autor);
             return await _context.SaveChangesAsync();
+        }
+
+        public IQueryable<Autor> GetAutors()
+        {
+            return _context.Autores
+               .AsQueryable();
         }
     }
 }

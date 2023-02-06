@@ -1,4 +1,6 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using API.Utilities;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 namespace API.Extensions
 {
@@ -8,6 +10,23 @@ namespace API.Extensions
         {
             services.AddSwaggerGen(c =>
             {
+                c.SwaggerDoc("v1", new OpenApiInfo { 
+                    Title = "WebApiAutores",
+                    Version = "v1",
+                    Description = "Api Curso de Udemy",
+                    Contact = new OpenApiContact
+                    {
+                        Email = "test@test.com",
+                        Name = "Jesus Noguera",
+                        Url = new Uri("http://voilaa.tk")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "MIT"
+                    }
+                 });
+                c.SwaggerDoc("v2", new OpenApiInfo { Title = "WebApiAutores", Version = "v2" });
+
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -17,6 +36,9 @@ namespace API.Extensions
                     In = ParameterLocation.Header
 
                 });
+
+                c.OperationFilter<AgregarParametroHATEOAS>();
+                c.OperationFilter<AgregarParametroXVersion>();
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -29,9 +51,15 @@ namespace API.Extensions
                                 Id = "Bearer"
                             }
                         },
-                         Array.Empty<string>() //TODO AÑADI ESTO EN VEZ DE UN NEW STRING[] A VER SI LE GUSTA
+                         Array.Empty<string>() 
                     }
                 });
+
+                var archivoXml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var rutaXml = Path.Combine(AppContext.BaseDirectory, archivoXml);
+
+                c.IncludeXmlComments(rutaXml);
+
             });
 
             return services;

@@ -19,7 +19,8 @@ namespace Core.Interfaces
 
         public Task<List<Autor>> GetAutorByName(string name);
 
-        public Task<List<Autor>> GetAutors();
+        public Task<List<Autor>> GetAutorsAsync();
+        public IQueryable<Autor> GetAutors(); // esta es para la paginacion que no le gustan las llamadas asincronas da un error raro y no se como 
 
         public Task<int> NewAutor(Autor autor);
 

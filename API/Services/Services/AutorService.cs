@@ -1,5 +1,6 @@
 ﻿using API.Dto;
 using API.Services.Interfaces;
+using API.Utilities;
 using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
@@ -14,13 +15,16 @@ namespace API.Services.Services
     public class AutorService : IAutorService
     {
         private readonly IAutorLibroService _autorLibroService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAutorRepository _autorRepository;
         private readonly IMapper _mapper;
-        public AutorService(IAutorRepository autorRepository, IMapper mapper, IAutorLibroService autorLibroService)
+
+        public AutorService(IAutorRepository autorRepository, IMapper mapper, IAutorLibroService autorLibroService, IHttpContextAccessor httpContextAccessor)
         {
             _autorRepository = autorRepository;
             _mapper = mapper;
             _autorLibroService = autorLibroService;
+            _httpContextAccessor = httpContextAccessor;
         }
         
         public async Task<bool> CheckAutorById(int id)
@@ -57,17 +61,17 @@ namespace API.Services.Services
                 
         }
 
-        public async Task<List<AutorGetDto>> GetAutorByName(string name)
+        public async Task<List<AutorBaseDto>> GetAutorByName(string name)
         {
-            return  _mapper.Map<List<AutorGetDto>>( await _autorRepository.GetAutorByName(name));
+            return  _mapper.Map<List<AutorBaseDto>>( await _autorRepository.GetAutorByName(name));
         }
            
-        public async Task<List<AutorGetDto>> GetAutors()
+        public async Task<List<AutorBaseDto>> GetAutorsAsync()
         {
-            List<Autor> autores = await _autorRepository.GetAutors();
+            List<Autor> autores = await _autorRepository.GetAutorsAsync();
             return autores.Count == 0 
                 ? new() 
-                : _mapper.Map<List<Autor> , List<AutorGetDto>>(autores);
+                : _mapper.Map<List<Autor> , List<AutorBaseDto>>(autores);
         }
 
         public async Task<Dictionary<int,object>> NewAutor(AutorPostDto autorPostDto)
@@ -80,7 +84,7 @@ namespace API.Services.Services
            
             return result switch
             {
-                > 0 => new() { { 201, _mapper.Map<AutorGetDto>(autor) } },
+                > 0 => new() { { 201, _mapper.Map<AutorBaseDto>(autor) } },
 
                 _ => new() { { 500, "Error Inesperado" } }
 
@@ -133,6 +137,16 @@ namespace API.Services.Services
             };
         }
 
+        public IQueryable<Autor> GetAutors()
+        {
+            IQueryable<Autor> autores =  _autorRepository.GetAutors();
+            return autores;
+        }
+
+        public  List<AutorBaseDto> MapearAAutorDto(List<Autor> autores)
+        {
+            return _mapper.Map<List<AutorBaseDto>>(autores);
+        }
     }
 }
 

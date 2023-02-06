@@ -5,14 +5,22 @@ using API.Extensions;
 using Infrastructure;
 using API.Filters;
 using Infrastructure.Identity;
+using API.Utilities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
+[assembly: ApiConventionType(typeof(DefaultApiConventions))]
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers(options =>
-    options.Filters.Add(typeof(FiltroDeExcepcion)))   // esto lo dejamos de momento
+{
+    options.Filters.Add(typeof(FiltroDeExcepcion));
+    options.Conventions.Add(new SwaggerAgrupaPorVersion());
+})
+       // esto lo dejamos de momento
 .AddJsonOptions(x =>
         x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
 .AddNewtonsoftJson();
@@ -33,7 +41,8 @@ builder.Services.AddCors(options =>
     {
         builder.WithOrigins("https://apirequest.io")
         .AllowAnyMethod()
-        .AllowAnyHeader();
+        .AllowAnyHeader()
+        .WithExposedHeaders(new string[] { "cantidadTotalRegistros" });
         //.WithExposedHeaders();  esto es para exponer cabeceras desde el api no entendi bien pero dice que es un error comun olvidar esto asi que lo dejo por si acaso
     });
 });
@@ -48,6 +57,7 @@ builder.Services.AddDataProtection();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation();
+//builder.Services.AddApplicationInsightsTelemetry(builder.Configuration.GetConnectionString("ApplicationInsights:ConnectionString"));
 var app = builder.Build();
 
 //**************************************************************
@@ -64,9 +74,14 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+   
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApiAutores v1");
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", "WebApiAutores v2");
+});
 
 app.UseHttpsRedirection();
 

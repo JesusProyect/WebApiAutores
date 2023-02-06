@@ -11,6 +11,8 @@ namespace API.Profiles
         {
             CreateMap<Autor, AutorGetDto>();
 
+            CreateMap<Autor, AutorBaseDto>();
+
             CreateMap<Libro, LibroGetDto>();
 
             CreateMap<Autor, AutorGetByDniDto>()  //los by Dni son porque tiene mas detalles le fuese puesto details pero bueno ya es tarde

@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+namespace API.Controllers.V1
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class UsuarioController : ControllerBase
     {
@@ -39,12 +39,12 @@ namespace API.Controllers
             return Ok(_usuarioService.GenerarHash(textoPlano)[200]);
         }
 
-        [HttpGet("RenovarToken")]
+        [HttpGet("RenovarToken", Name = "RenovarToken")]
         [Authorize]
-        public async Task<ActionResult<AutenticacionRespuestaDto>> Renovar()    
+        public async Task<ActionResult<AutenticacionRespuestaDto>> Renovar()
         {
             string email = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault()!.Value;
-           
+
             Dictionary<int, object> result = await _usuarioService.RenovarAutenticacion(email);
 
             return result.Keys.First() switch
@@ -58,8 +58,8 @@ namespace API.Controllers
         #endregion
 
         #region POST
-        
-        [HttpPost("register")]
+
+        [HttpPost("register", Name = "RegistrarUsuario")]
         public async Task<ActionResult<AutenticacionRespuestaDto>> Registrar(CredencialesDto credencialesDto)
         {
             Dictionary<int, object> result = await _usuarioService.CrearUsuario(credencialesDto);
@@ -72,10 +72,10 @@ namespace API.Controllers
             };
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<AutenticacionRespuestaDto>> Login( CredencialesDto credencialesDto)
+        [HttpPost("login", Name = "LoginUsuario")]
+        public async Task<ActionResult<AutenticacionRespuestaDto>> Login(CredencialesDto credencialesDto)
         {
-            Dictionary<int,object> result = await _usuarioService.Login(credencialesDto);
+            Dictionary<int, object> result = await _usuarioService.Login(credencialesDto);
 
             return result.Keys.First() switch
             {
@@ -85,7 +85,7 @@ namespace API.Controllers
         }
 
         [Authorize(Policy = "esAdmin")]
-        [HttpPost("HacerAdmin")]
+        [HttpPost("HacerAdmin", Name = "HacerAdmin")]
         public async Task<ActionResult> HacerAdmin(EditarAdminDto editarAdminDto)
         {
             Dictionary<int, object> result = await _usuarioService.HacerAdmin(editarAdminDto.Email!);
@@ -101,7 +101,7 @@ namespace API.Controllers
         }
 
         [Authorize(Policy = "esAdmin")]
-        [HttpPost("RemoverAdmin")]
+        [HttpPost("RemoverAdmin", Name = "RemoverAdmin")]
         public async Task<ActionResult> RemoverAdmin(EditarAdminDto editarAdminDto)
         {
             Dictionary<int, object> result = await _usuarioService.RemoverAdmin(editarAdminDto.Email!);
